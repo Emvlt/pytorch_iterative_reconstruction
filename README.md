@@ -5,3 +5,4 @@ Pytorch Iterative Reconstruction is a framework to solve an inverse problem (her
 
 It relies on grid sampling to make the rotation a differentiable operation, and then by minimising a loss function in the projection space.
 
+To try it, run "python test.py" from the command line
