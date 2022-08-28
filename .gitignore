@@ -2,4 +2,5 @@ images
 runs
 __pycache__
 test_data/*.pt
+test_data/test_phantom_3D.npy
 
