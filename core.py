@@ -63,7 +63,7 @@ def reconstruct(dimension:int, angles:torch.Tensor, projections:torch.Tensor, ge
         mask[:,:,rr,cc] = 0
         mask = 1 - mask
 
-    writer = SummaryWriter(log_dir =f'{geom.beam_geometry}_{dimension}D')
+    writer = SummaryWriter(log_dir =f'runs/{geom.beam_geometry}_{dimension}D')
 
     for n in tqdm(range(training_dict['n_steps'])):
         sinogram_loss = 0
