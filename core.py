@@ -13,7 +13,10 @@ from skimage.draw import disk
 from geometry import Geometry
 
 def sample(dimension:int, angles:torch.Tensor, volume:torch.Tensor, geom:Geometry, training_dict:Dict, device:torch.device, save_path:pathlib.Path, verbose = False):
+    
     if not save_path.is_file():
+        print('Beginning Sampling')
+
         batch_size = training_dict['batch_size']
 
         projection_tensor = get_projection_tensor(geom, device)
@@ -36,9 +39,9 @@ def sample(dimension:int, angles:torch.Tensor, volume:torch.Tensor, geom:Geometr
                     plt.matshow(acquisition[0,0].detach().cpu())
                 plt.show()
 
+        print(f'Saving sinogram at {save_path}')
         torch.save(sinogram, save_path)
     sinogram = torch.load(save_path)
-
     pathlib.Path(f'images/{dimension}D/sinograms').mkdir(parents=True, exist_ok=True)
     tensor_to_image(geom.dimension, torch.load(save_path), pathlib.Path(f'images/{dimension}D/sinograms/{save_path.stem}.jpg'))
 
