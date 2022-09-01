@@ -1,0 +1,11 @@
+{
+    "DSD": 1536,
+    "DS0": 1000,
+    "n_voxels":[1,512,512],
+    "s_voxels":[1,1,1],
+    "n_pixels_detector":[1,512],
+    "s_pixels_detector":[1,1], 
+    "beam_geometry":"parallel", 
+    "dimension":2,
+    "projection_tensor_path":"test_data/projection_tensor_2D_parallel.pt"
+}
