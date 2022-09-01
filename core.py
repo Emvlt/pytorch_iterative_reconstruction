@@ -43,9 +43,10 @@ def sample(dimension:int, angles:torch.Tensor, volume:torch.Tensor, geom:Geometr
         torch.save(sinogram, save_path)
     sinogram = torch.load(save_path)
     pathlib.Path(f'images/{dimension}D/sinograms').mkdir(parents=True, exist_ok=True)
-    tensor_to_image(geom.dimension, torch.load(save_path), pathlib.Path(f'images/{dimension}D/sinograms/{save_path.stem}.jpg'))
+    if not pathlib.Path(f'images/{dimension}D/sinograms/{save_path.stem}.jpg').is_file():
+        tensor_to_image(geom.dimension, torch.load(save_path), pathlib.Path(f'images/{dimension}D/sinograms/{save_path.stem}.jpg'))
 
-def reconstruct(dimension:int, angles:torch.Tensor, projections:torch.Tensor, geom:Geometry,training_dict:Dict, device:torch.device, save_path:pathlib.Path, verbose = False):
+def reconstruct(dimension:int, angles:torch.Tensor, projections:torch.Tensor, geom:Geometry,training_dict:Dict, device:torch.device, save_path:pathlib.Path, verbose:bool, video:bool):
     projection_tensor = get_projection_tensor(geom, device)
     rotation_tensor_dict  = {f'{i}': Rotation_Network(dimension, theta, device) for i, theta in enumerate(angles)}
 
@@ -57,6 +58,10 @@ def reconstruct(dimension:int, angles:torch.Tensor, projections:torch.Tensor, ge
     if verbose:
         image_save_path = pathlib.Path(f'images/{dimension}D/reconstructions')
         image_save_path.mkdir(parents=True, exist_ok=True)
+
+    if video:
+        fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+        video_writer = cv2.VideoWriter('reconstruction.mp4', fourcc, 32, (512,512),0)
 
     mask = torch.ones(reconstruction.size(), requires_grad=False, device=device)
     if dimension == 2:
@@ -79,11 +84,16 @@ def reconstruct(dimension:int, angles:torch.Tensor, projections:torch.Tensor, ge
             loss.backward()
             optimiser.step()
 
+        if video:
+            video_writer.write(np.uint8(normalise(reconstruction[0,0]).detach().cpu()*255))
+
         if verbose:
             cv2.imwrite(str(image_save_path.joinpath(f'{geom.beam_geometry}.jpg')), np.uint8(normalise(reconstruction[0,0]).detach().cpu()*255))
             if n%10==0:
                 cv2.imwrite(str(image_save_path.joinpath(f'{geom.beam_geometry}_{n}.jpg')), np.uint8(normalise(reconstruction[0,0]).detach().cpu()*255))                
 
         writer.add_scalar(f'Sinogram loss', sinogram_loss, n)
-    if verbose:
-        torch.save(reconstruction.detach().cpu(), save_path)
+
+    torch.save(reconstruction.detach().cpu(), save_path)
+    if video:
+        video_writer.release()

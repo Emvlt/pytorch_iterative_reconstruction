@@ -15,11 +15,13 @@ def test(dimension:int, geom:Geometry, training_dict:Dict, sampling_dict:Dict):
     
     image_load_path = pathlib.Path(f'test_data/test_phantom_{dimension}D.npy')
     image_save_path = pathlib.Path(f'images/{dimension}D/test_phantom.jpg')
-    dicom_to_image(dimension, image_load_path, image_save_path)
+    if not image_save_path.is_file():
+        dicom_to_image(dimension, image_load_path, image_save_path)
 
     tensor_load_path = pathlib.Path(f'test_data/test_phantom_{dimension}D.npy')
     tensor_save_path = pathlib.Path(f'test_data/test_phantom_{dimension}D.pt')
-    dicom_to_tensor(tensor_load_path, tensor_save_path)
+    if not tensor_save_path.is_file():
+        dicom_to_tensor(tensor_load_path, tensor_save_path)
 
     volume = torch.load(f'test_data/test_phantom_{dimension}D.pt').to(device)
 
@@ -31,7 +33,7 @@ def test(dimension:int, geom:Geometry, training_dict:Dict, sampling_dict:Dict):
 
     reconstruction_save_path = pathlib.Path(f'test_data/reconstructed_volume_{dimension}D_{geom.beam_geometry}.pt')
 
-    reconstruct(dimension, angles, projections, geom, training_dict, device, reconstruction_save_path, True)
+    reconstruct(dimension, angles, projections, geom, training_dict, device, reconstruction_save_path, False, video=True)
 
 def get_test_parameters(dimension, beam_geometry):
     geom = Geometry()
