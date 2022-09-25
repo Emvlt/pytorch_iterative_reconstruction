@@ -3,4 +3,7 @@ __pycache__
 test_data/*.pt
 test_data/test_phantom_3D.npy
 *.mp4
-
+misc.py
+collect_env.py
+profiling
+FlameGraph

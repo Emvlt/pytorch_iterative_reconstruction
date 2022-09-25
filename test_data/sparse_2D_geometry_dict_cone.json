@@ -7,5 +7,6 @@
     "s_pixels_detector":[1,1], 
     "beam_geometry":"cone", 
     "dimension":2,
-    "projection_tensor_path":"test_data/projection_tensor_2D_cone.pt"
+    "projection_tensor_path":"test_data/sparse_projection_tensor_2D_cone.pt",
+    "sparse":true
 }

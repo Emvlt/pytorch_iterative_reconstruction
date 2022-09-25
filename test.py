@@ -4,13 +4,12 @@ import torch
 import pathlib
 from geometry import Geometry
 from core import sample, reconstruct
-from utils import normalise, dicom_to_tensor, dicom_to_image
+from utils import dicom_to_tensor, dicom_to_image
 import argparse
 
-def test(dimension:int, geom:Geometry, training_dict:Dict, sampling_dict:Dict):
+def test(dimension:int, geom:Geometry, training_dict:Dict, sampling_dict:Dict, sparsity:str):
     print(f'----------- Beginning {dimension}D test-----------')
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    
     angles = torch.linspace(0, sampling_dict['sampling_amplitude'], sampling_dict['n_acquisitions'])
     
     image_load_path = pathlib.Path(f'test_data/test_phantom_{dimension}D.npy')
@@ -25,19 +24,19 @@ def test(dimension:int, geom:Geometry, training_dict:Dict, sampling_dict:Dict):
 
     volume = torch.load(f'test_data/test_phantom_{dimension}D.pt').to(device)
 
-    sinogram_save_path = pathlib.Path(f'test_data/test_sinogram_{dimension}D_{geom.beam_geometry}.pt')
+    sinogram_save_path = pathlib.Path(f'test_data/{sparsity}_test_sinogram_{dimension}D_{geom.beam_geometry}.pt')
 
     sample(dimension, angles, volume, geom, training_dict, device, sinogram_save_path, verbose=False)
 
-    projections = normalise(torch.load(f'test_data/test_sinogram_{dimension}D_{geom.beam_geometry}.pt').to(device))
+    projections = torch.load(f'test_data/{sparsity}_test_sinogram_{dimension}D_{geom.beam_geometry}.pt').to(device)
 
-    reconstruction_save_path = pathlib.Path(f'test_data/reconstructed_volume_{dimension}D_{geom.beam_geometry}.pt')
+    reconstruction_save_path = pathlib.Path(f'test_data/{sparsity}_reconstructed_volume_{dimension}D_{geom.beam_geometry}.pt')
 
-    reconstruct(dimension, angles, projections, geom, training_dict, device, reconstruction_save_path, False, video=True)
+    reconstruct(dimension, angles, projections, geom, training_dict, device, reconstruction_save_path, True, video=False)
 
-def get_test_parameters(dimension, beam_geometry):
+def get_test_parameters(dimension, beam_geometry, sparsity:str):
     geom = Geometry()
-    geom.read_from_json(pathlib.Path(f'test_data/{dimension}D_geometry_dict_{beam_geometry}.json'))
+    geom.read_from_json(pathlib.Path(f'test_data/{sparsity}_{dimension}D_geometry_dict_{beam_geometry}.json'))
 
     geom.initialise()
 
@@ -59,8 +58,9 @@ def get_test_parameters(dimension, beam_geometry):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--dimension',type=int, default = 2, required=False)
-    parser.add_argument('--beam', type=str, required=True)
+    parser.add_argument('--beam', type=str, required=False, default='cone')
+    parser.add_argument('--sparsity', type=str, required=False, default='sparse')
 
     args = parser.parse_args()
-    geometry_properties, training_dict, sampling_dict = get_test_parameters(args.dimension, args.beam)
-    test(args.dimension, geometry_properties, training_dict, sampling_dict)
+    geometry_properties, training_dict, sampling_dict = get_test_parameters(args.dimension, args.beam, args.sparsity)
+    test(args.dimension, geometry_properties, training_dict, sampling_dict, args.sparsity)
